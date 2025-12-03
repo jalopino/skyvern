@@ -153,18 +153,20 @@ services:
       - ./har:/data/har
       - ./.streamlit:/app/.streamlit
     environment:
-      # Default: Use internal service names for communication
-      # Override these in Coolify if you have custom domains
-      - VITE_API_BASE_URL=http://skyvern:8000/api/v1
-      - VITE_WSS_BASE_URL=ws://skyvern:8000/api/v1
-      - VITE_ARTIFACT_API_BASE_URL=http://skyvern:9090
-      # Uncomment if you want to enable code block features:
-      # - VITE_ENABLE_CODE_BLOCK=true
-      
-      # For Coolify with custom domains, override these:
-      # - VITE_API_BASE_URL=https://api.yourdomain.com/api/v1
-      # - VITE_WSS_BASE_URL=wss://api.yourdomain.com/api/v1
-      # - VITE_ARTIFACT_API_BASE_URL=https://artifacts.yourdomain.com
+      # IMPORTANT: Set these in Coolify environment variables!
+      # For local docker-compose, use localhost URLs
+      # For Coolify/production, use your public domain URLs
+      # 
+      # Example for local:
+      # - VITE_API_BASE_URL=http://localhost:8000/api/v1
+      # - VITE_WSS_BASE_URL=ws://localhost:8000/api/v1
+      # - VITE_ARTIFACT_API_BASE_URL=http://localhost:9090
+      # 
+      # Example for Coolify:
+      # - VITE_API_BASE_URL=https://your-backend-domain.com/api/v1
+      # - VITE_WSS_BASE_URL=wss://your-backend-domain.com/api/v1
+      # - VITE_ARTIFACT_API_BASE_URL=https://your-backend-domain.com:9090
+      {}  # Empty by default - MUST be set in Coolify environment variables
     depends_on:
       skyvern:
         condition: service_healthy
