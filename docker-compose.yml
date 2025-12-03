@@ -24,11 +24,11 @@ services:
     restart: on-failure
     env_file:
       - .env
-    # For Coolify: These ports will be automatically mapped by Coolify
-    # You can also use 'expose' instead of 'ports' if you want internal-only access
-    ports:
-      - 8000:8000
-      - 9222:9222 # for cdp browser forwarding
+    # For Coolify: Use 'expose' to avoid port conflicts
+    # Coolify will automatically handle external access
+    expose:
+      - 8000
+      - 9222
     # For Coolify: Configure persistent volumes in Coolify UI for these paths
     volumes:
       - ./artifacts:/data/artifacts
@@ -141,10 +141,11 @@ services:
   skyvern-ui:
     image: public.ecr.aws/skyvern/skyvern-ui:latest
     restart: on-failure
-    # For Coolify: These ports will be automatically mapped by Coolify
-    ports:
-      - 8080:8080  # Main UI port
-      - 9090:9090  # Artifact server port
+    # For Coolify: Use 'expose' to avoid port conflicts
+    # Coolify will automatically handle external access
+    expose:
+      - 8080
+      - 9090
     # For Coolify: Share the same persistent volumes as the backend
     volumes:
       - ./artifacts:/data/artifacts
