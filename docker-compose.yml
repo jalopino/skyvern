@@ -5,6 +5,8 @@ services:
     # comment out if you want to externally connect DB
     # ports:
     #   - 5432:5432
+    # For Coolify: Create a separate PostgreSQL database service instead of using this
+    # Or keep this for all-in-one docker-compose deployment
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     environment:
@@ -22,10 +24,12 @@ services:
     restart: on-failure
     env_file:
       - .env
-    # comment out if you want to externally call skyvern API
+    # For Coolify: These ports will be automatically mapped by Coolify
+    # You can also use 'expose' instead of 'ports' if you want internal-only access
     ports:
       - 8000:8000
       - 9222:9222 # for cdp browser forwarding
+    # For Coolify: Configure persistent volumes in Coolify UI for these paths
     volumes:
       - ./artifacts:/data/artifacts
       - ./videos:/data/videos
@@ -36,7 +40,10 @@ services:
       # - ./skyvern:/app/skyvern
       # - ./alembic:/app/alembic
     environment:
+      # For Coolify: Override DATABASE_STRING in Coolify environment variables
+      # to point to your Coolify-managed PostgreSQL service
       - DATABASE_STRING=postgresql+psycopg://skyvern:skyvern@postgres:5432/skyvern
+      # For Coolify: Use chromium-headless for production
       - BROWSER_TYPE=chromium-headful
       - ENABLE_CODE_BLOCK=true
       # - BROWSER_TYPE=cdp-connect
@@ -134,9 +141,11 @@ services:
   skyvern-ui:
     image: public.ecr.aws/skyvern/skyvern-ui:latest
     restart: on-failure
+    # For Coolify: These ports will be automatically mapped by Coolify
     ports:
-      - 8080:8080
-      - 9090:9090
+      - 8080:8080  # Main UI port
+      - 9090:9090  # Artifact server port
+    # For Coolify: Share the same persistent volumes as the backend
     volumes:
       - ./artifacts:/data/artifacts
       - ./videos:/data/videos
@@ -146,16 +155,16 @@ services:
       - skyvern-frontend/.env
     environment: {}
     #  - VITE_ENABLE_CODE_BLOCK=true
-    # if you want to run skyvern on a remote server,
-    # you need to change the host in VITE_WSS_BASE_URL and VITE_API_BASE_URL to match your server ip
-    # If you're self-hosting this behind a dns, you'll want to set:
-    #   A route for the API: api.yourdomain.com -> localhost:8000
-    #   A route for the UI: yourdomain.com -> localhost:8080
-    #   A route for the artifact API: artifact.yourdomain.com -> localhost:9090 (maybe not needed)
-    # - VITE_WSS_BASE_URL=ws://localhost:8000/api/v1
-    #   - VITE_ARTIFACT_API_BASE_URL=http://localhost:9090
-    #   - VITE_API_BASE_URL=http://localhost:8000/api/v1
-    #   - VITE_SKYVERN_API_KEY=<get this from "settings" in the Skyvern UI>
+    # For Coolify with custom domains:
+    # Set these environment variables in Coolify UI:
+    # - VITE_API_BASE_URL=https://api.yourdomain.com/api/v1
+    # - VITE_WSS_BASE_URL=wss://api.yourdomain.com/api/v1
+    # - VITE_ARTIFACT_API_BASE_URL=https://artifacts.yourdomain.com
+    #
+    # For Coolify without custom domains (internal network):
+    # - VITE_API_BASE_URL=http://skyvern:8000/api/v1
+    # - VITE_WSS_BASE_URL=ws://skyvern:8000/api/v1
+    # - VITE_ARTIFACT_API_BASE_URL=http://skyvern:9090
     depends_on:
       skyvern:
         condition: service_healthy

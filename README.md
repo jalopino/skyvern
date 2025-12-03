@@ -256,7 +256,23 @@ skyvern stop server
 
 If you encounter any database related errors while using Docker to run Skyvern, check which Postgres container is running with `docker ps`.
 
+## Coolify Deployment
 
+Deploy Skyvern to [Coolify](https://coolify.io) (self-hosted PaaS) in under 10 minutes! ☁️
+
+Coolify provides a Heroku-like experience for deploying Docker applications on your own infrastructure, with features like:
+- 🚀 One-click deployments
+- 🔄 Automatic SSL/TLS certificates  
+- 📊 Built-in monitoring and logs
+- 🔐 Environment variable management
+- 💾 Persistent storage and backups
+
+**Quick Start**: See [`COOLIFY_QUICKSTART.md`](./COOLIFY_QUICKSTART.md) for a step-by-step guide.
+
+**Documentation**:
+- 📖 Full deployment guide: [`COOLIFY_DEPLOYMENT.md`](./COOLIFY_DEPLOYMENT.md)
+- 📋 Environment variables reference: [`COOLIFY_ENV_VARIABLES.md`](./COOLIFY_ENV_VARIABLES.md)
+- 🔧 Example configuration: [`env.coolify.example`](./env.coolify.example)
 
 # Skyvern Features
 

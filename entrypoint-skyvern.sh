@@ -37,6 +37,24 @@ if [ ! -f ".streamlit/secrets.toml" ]; then
     # Update the secrets-open-source.toml file
     echo -e "[skyvern]\nconfigs = [\n    {\"env\" = \"local\", \"host\" = \"http://skyvern:8000/api/v1\", \"orgs\" = [{name=\"Skyvern\", cred=\"$api_token\"}]}\n]" > .streamlit/secrets.toml
     echo ".streamlit/secrets.toml file updated with organization details."
+    echo "=========================================="
+    echo "🔑 IMPORTANT: Your Skyvern API Key"
+    echo "=========================================="
+    echo "API Token: $api_token"
+    echo ""
+    echo "Please save this API key somewhere safe!"
+    echo "You can also find it in the Skyvern UI under Settings."
+    echo "=========================================="
+else
+    echo "Organization already exists, reading existing API token..."
+    existing_token=$(sed -n 's/.*cred\s*=\s*"\([^"]*\)".*/\1/p' .streamlit/secrets.toml)
+    if [ -n "$existing_token" ]; then
+        echo "=========================================="
+        echo "🔑 Existing Skyvern API Key"
+        echo "=========================================="
+        echo "API Token: $existing_token"
+        echo "=========================================="
+    fi
 fi
 
 _kill_xvfb_on_term() {
