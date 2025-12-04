@@ -11,9 +11,19 @@ import {
 } from "@/components/ui/card";
 
 // Read auth config from environment variables
-const AUTH_ENABLED = import.meta.env.VITE_UI_AUTH_ENABLED === "true";
-const AUTH_USERNAME = import.meta.env.VITE_UI_AUTH_USERNAME || "admin";
-const AUTH_PASSWORD = import.meta.env.VITE_UI_AUTH_PASSWORD || "admin";
+// Vite env vars are always strings, so we check for the string "true"
+const AUTH_ENABLED_RAW = import.meta.env.VITE_UI_AUTH_ENABLED as string | undefined;
+const AUTH_ENABLED = String(AUTH_ENABLED_RAW || "").toLowerCase() === "true";
+const AUTH_USERNAME = (import.meta.env.VITE_UI_AUTH_USERNAME as string | undefined) || "admin";
+const AUTH_PASSWORD = (import.meta.env.VITE_UI_AUTH_PASSWORD as string | undefined) || "admin";
+
+// Debug logging (always log to help diagnose)
+console.log("[AuthGuard] Configuration:", {
+  VITE_UI_AUTH_ENABLED: AUTH_ENABLED_RAW,
+  AUTH_ENABLED,
+  hasUsername: !!AUTH_USERNAME,
+  hasPassword: !!AUTH_PASSWORD,
+});
 
 const SESSION_KEY = "skyvern.ui.authenticated";
 const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
