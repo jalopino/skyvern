@@ -3,11 +3,12 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, AsyncGenerator, Awaitable, Callable
 
+import httpx
 import structlog
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 from starlette.requests import HTTPConnection, Request
 from starlette_context.middleware import RawContextMiddleware
@@ -150,6 +151,41 @@ def create_api_app() -> FastAPI:
     @fastapi_app.middleware("http")
     async def raw_request_logging(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         return await log_raw_request_middleware(request, call_next)
+
+    # Proxy artifact requests to internal artifact server (port 9090)
+    @fastapi_app.api_route("/artifact/{path:path}", methods=["GET", "HEAD", "OPTIONS"])
+    async def proxy_artifact(request: Request, path: str):
+        """Proxy requests to internal artifact server on port 9090"""
+        try:
+            # Build URL to internal artifact server
+            artifact_url = f"http://localhost:9090/artifact/{path}"
+            
+            # Forward query parameters
+            if request.url.query:
+                artifact_url += f"?{request.url.query}"
+            
+            # Forward request to artifact server
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.request(
+                    method=request.method,
+                    url=artifact_url,
+                    headers={k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length"]},
+                    follow_redirects=True,
+                )
+                
+                # Return response with same status and headers
+                return StreamingResponse(
+                    content=response.iter_bytes(),
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type=response.headers.get("content-type"),
+                )
+        except Exception as e:
+            LOG.exception("Error proxying artifact request", path=path, error=str(e))
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"Failed to proxy artifact request: {str(e)}"}
+            )
 
     if forge_app_instance.setup_api_app:
         forge_app_instance.setup_api_app(fastapi_app)
